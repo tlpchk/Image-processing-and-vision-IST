@@ -1,5 +1,6 @@
 function [FromCam2W, XYZ, RGB] = rigid_transforms(imgseq, k, cam_params, max_n_points) 
     FromCam2W = (struct('R','','T','')); % initialization
+    
     for i=1:length(imgseq)
         FromCam2W(i).R = eye(3);
         FromCam2W(i).T = zeros(3,1);
