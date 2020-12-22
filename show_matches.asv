@@ -1,9 +1,10 @@
-function show_matches(image1, image2, f1, f2, matches, inliers)
+function show_matches(xyz1, xyz2, rgb1, rgb2  f1, f2, matches, inliers)
     % matches - all SIFT mathces 
     % inliers - array of indicies of inliers
     numMatches = size(matches,2);
     
-    figure(2) ; clf ;
+    figure(1) ; clf ;
+    
     subplot(2,1,1) ;
     imagesc([image1 image2]) ;
 

@@ -1,3 +1,7 @@
+% TODO:
+% k - is not used
+% max_n_points not used
+
 function [FromCam2W, XYZ, RGB] = rigid_transforms(imgseq, k, cam_params, max_n_points) 
     FromCam2W = (struct('R','','T','')); % initialization
     
@@ -6,41 +10,34 @@ function [FromCam2W, XYZ, RGB] = rigid_transforms(imgseq, k, cam_params, max_n_p
         FromCam2W(i).T = zeros(3,1);
     end
     
-    rgb1 = imread(imgseq(k).rgb);
-    depth1 = imread(imgseq(k).depth);
-    xyz1 = get_xyz(depth1, cam_params.Kdepth);
-    color = get_color(xyz1, rgb1, cam_params);
-    XYZ = (xyz1);
-    RGB = (color);
+    rgb_world = imread(imgseq(1).rgb);
+    depth_world = imread(imgseq(1).depth);
+    xyz_world = get_xyz(depth_world, cam_params.Kdepth);
+    color_world = get_color(xyz_world, rgb_world, cam_params);
+    XYZ = (xyz_world);
+    RGB = (color_world);
     
-    for i=[k-1:-1:1, k+1:length(imgseq)]
-        if i == k-1 || i == k+1
-           rgb1 = imread(imgseq(k).rgb);
-           depth1 = imread(imgseq(k).depth);
-           xyz1 = get_xyz(depth1, cam_params.Kdepth);
-        end
+    rgb_prev = rgb_world;
+    xyz_prev = xyz_world;
+    for i=2:length(imgseq)
+        rgb = imread(imgseq(i).rgb);
+        depth = imread(imgseq(i).depth);
+        xyz = get_xyz(depth, cam_params.Kdepth);
         
-        rgb2 = imread(imgseq(i).rgb);
-        depth2 = imread(imgseq(i).depth);
-        xyz2 = get_xyz(depth2, cam_params.Kdepth);
-        
-        [R, T] = rigid_transform(rgb2, rgb1, xyz2, xyz1); 
-        
-        if i < k
-            FromCam2W(i).R = FromCam2W(i+1).R * R ;
-            FromCam2W(i).T = (FromCam2W(i+1).R * T) + FromCam2W(i+1).T;
-        else
-            FromCam2W(i).R = FromCam2W(i-1).R * R ;
-            FromCam2W(i).T = (FromCam2W(i-1).R * T) + FromCam2W(i-1).T;
-        end
+        [R, T] = rigid_transform(rgb, rgb_prev, xyz, xyz_prev, cam_params); 
        
-        xyz2_transformed = xyz2 * FromCam2W(i).R' + repmat(T', length(xyz2),1);
-        colors2_transformed = get_color(xyz2, rgb2, cam_params);
+        FromCam2W(i).R = FromCam2W(i-1).R * R ;
+        FromCam2W(i).T = (FromCam2W(i-1).R * T) + FromCam2W(i-1).T;
         
-        XYZ = [XYZ ; xyz2_transformed];
-        RGB = [RGB ; colors2_transformed];
-    
-        rgb1 = rgb2;
-        xyz1 = xyz2;
+        K = [FromCam2W(i).R FromCam2W(i).T];
+        
+        xyz_t = (K * [xyz, ones(length(xyz),1)]')';
+        colors = get_color(xyz, rgb, cam_params);
+        
+        rgb_prev = rgb;
+        xyz_prev = xyz;
+        
+        XYZ = [XYZ ; xyz_t];
+        RGB = [RGB ; colors];
     end
 end
