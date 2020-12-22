@@ -1,4 +1,4 @@
-function [R1_to_2, T1_to_2] = rigid_transform(image1, image2, xyz1, xyz2, cam_params)
+function [R1_to_2, T1_to_2, mean_error] = rigid_transform(image1, image2, xyz1, xyz2, cam_params)
 % rigid_transform - Function that, when receiving the pair of images, produces the matrix
 % R and the vector T, which represent the transformation of the 3D points of the camera
 % depth of the first image for the second image.
@@ -93,11 +93,11 @@ ind1 = sub2ind([h w],uint64(v1),uint64(u1));
 ind2 = sub2ind([h w],uint64(v2),uint64(u2));
 points1 = xyz1(ind1,:);
 points2 = xyz2(ind2,:);
-
 % show_matches_3d(xyz1, xyz2, get_color(xyz1, image1, cam_params), get_color(xyz2, image2, cam_params), points1, points2)
 
-[~,~,tr] = procrustes(points2, points1, 'scaling', false,'reflection', false);
+[d,~,tr] = procrustes(points2, points1, 'scaling', false,'reflection', false);
 R1_to_2 = tr.T';
 T1_to_2 = tr.c(1,:)';
 
+mean_error = d;
 end

@@ -53,6 +53,19 @@ end
 
 save('imgseq_short', 'imgseq');
 
+%% imgseq_hobbesquiet preprocessing
+dataset_path = './datasets/hobbesquiet/';
+rgb_filename_format = strcat(dataset_path,'rgb_%04d.jpg');
+depth_filename_format = strcat(dataset_path,'depth_%04d.png');
+
+imgseq = (struct('rgb', '', 'depth', '')); % init array of structures
+for i=1:39
+    imgseq(i) = struct( ...
+        'rgb', sprintf(rgb_filename_format,i-1), ...
+        'depth', sprintf(depth_filename_format,i-1));
+end
+
+save('imgseq_hobbesquiet', 'imgseq');
 %% imgseq_midair_png preprocessing
 
 % dataset_path = './datasets/midair_png/';

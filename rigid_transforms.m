@@ -1,7 +1,3 @@
-% TODO:
-% k - is not used
-% max_n_points not used
-
 function [FromCam2W, XYZ, RGB] = rigid_transforms(imgseq, k, cam_params, max_n_points) 
     FromCam2W = (struct('R','','T','')); % initialization
     
@@ -20,12 +16,14 @@ function [FromCam2W, XYZ, RGB] = rigid_transforms(imgseq, k, cam_params, max_n_p
     
     rgb_prev = rgb_world;
     xyz_prev = xyz_world;
+    
+    errors = zeros(length(imgseq),1); 
     for i=2:length(imgseq)
         rgb = imread(imgseq(i).rgb);
         depth = imread(imgseq(i).depth);
         xyz = get_xyz(depth, cam_params.Kdepth);
         
-        [R, T] = rigid_transform(rgb, rgb_prev, xyz, xyz_prev, cam_params); 
+        [R, T, errors(i)] = rigid_transform(rgb, rgb_prev, xyz, xyz_prev, cam_params); 
        
         FromCam2W(i).R = FromCam2W(i-1).R * R ;
         FromCam2W(i).T = (FromCam2W(i-1).R * T) + FromCam2W(i-1).T;
@@ -41,7 +39,7 @@ function [FromCam2W, XYZ, RGB] = rigid_transforms(imgseq, k, cam_params, max_n_p
         XYZ = [XYZ ; xyz_t];
         RGB = [RGB ; colors];
     end
-    
+    fprintf("Mean distance between inliers in neighbouring pointclouds d=%f\n",mean(errors));
     
     % k frame is world coordinate system
     for i = 1:length(imgseq)
@@ -52,18 +50,8 @@ function [FromCam2W, XYZ, RGB] = rigid_transforms(imgseq, k, cam_params, max_n_p
         FromCam2W(i).T = K(1:3, 4);
     end
     
-    best_XYZ = XYZ;
-    best_RGB = RGB;
-    for i=(0.1:-0.005:0.001)
-        pc = pointCloud(XYZ, 'Color', RGB);
-        pc = pcdownsample(pc,'gridAverage',i);
-        if size(pc.Location,1) > max_n_points
-            XYZ = best_XYZ;
-            RGB = best_RGB;
-            break
-        end
-        best_XYZ = pc.Location;
-        best_RGB = pc.Color;
-    end
-
+    pc = pointCloud(XYZ, 'Color', RGB);
+    pc = pcdownsample(pc,'random', max_n_points/size(XYZ,1));
+    XYZ = pc.Location;
+    RGB = pc.Color;
 end
