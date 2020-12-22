@@ -80,9 +80,7 @@ for i=1:ransac_iterations
 end
 
 %% Comparing SIFT mathing with RANSAC and without it
-% figure;
-% % plot(1:length(error_trace), error_trace);
-show_matches(image1, image2, f1, f2, matches, single(best_inliers.'));
+% show_matches(image1, image2, f1, f2, matches, single(best_inliers.'));
 
 %% Selection of all the inliers points of the matrix in order to obtain the rotation matrix and the final translation vector                                                
 u1 = f1(1,matches(1,best_inliers));

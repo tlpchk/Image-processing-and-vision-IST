@@ -1,5 +1,7 @@
 function colors = get_color(xyz, rgb, cam_params)
-    [h,w] = size(rgb, [1,2]);
+    h = size(rgb, 1);
+    w = size(rgb, 2);
+    
     xyz1 = [xyz, ones(h*w,1)];
     
     uvw = cam_params.Krgb * [cam_params.R, cam_params.T] * xyz1.';

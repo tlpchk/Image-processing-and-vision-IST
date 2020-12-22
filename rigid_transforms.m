@@ -10,6 +10,7 @@ function [FromCam2W, XYZ, RGB] = rigid_transforms(imgseq, k, cam_params, max_n_p
         FromCam2W(i).T = zeros(3,1);
     end
     
+    % 1 frame is the world coordinate system
     rgb_world = imread(imgseq(1).rgb);
     depth_world = imread(imgseq(1).depth);
     xyz_world = get_xyz(depth_world, cam_params.Kdepth);
@@ -40,4 +41,29 @@ function [FromCam2W, XYZ, RGB] = rigid_transforms(imgseq, k, cam_params, max_n_p
         XYZ = [XYZ ; xyz_t];
         RGB = [RGB ; colors];
     end
+    
+    
+    % k frame is world coordinate system
+    for i = 1:length(imgseq)
+        K1 = [FromCam2W(i).R FromCam2W(i).T; 0 0 0 1];
+        K2 = [FromCam2W(k).R FromCam2W(k).T; 0 0 0 1];
+        K = inv(K2) * K1;
+        FromCam2W(i).R = K(1:3, 1:3);
+        FromCam2W(i).T = K(1:3, 4);
+    end
+    
+    best_XYZ = XYZ;
+    best_RGB = RGB;
+    for i=(0.1:-0.005:0.001)
+        pc = pointCloud(XYZ, 'Color', RGB);
+        pc = pcdownsample(pc,'gridAverage',i);
+        if size(pc.Location,1) > max_n_points
+            XYZ = best_XYZ;
+            RGB = best_RGB;
+            break
+        end
+        best_XYZ = pc.Location;
+        best_RGB = pc.Color;
+    end
+
 end

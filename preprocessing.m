@@ -31,6 +31,28 @@ end
 
 save('imgseq_newpiv2', 'imgseq');
 
+%% imseq_short preprocessing
+dataset_path = './datasets/short/';
+rgb_filename_format = strcat(dataset_path,'rgb_image_%d.png');
+depth_filename_format_mat = strcat(dataset_path,'depth_%d.mat');
+depth_filename_format = strcat(dataset_path,'depth_%d.png');
+
+% Convert depth files from .mat to .png
+
+for i=12:15
+    d_struct=load(sprintf(depth_filename_format_mat,i));
+    imwrite(d_struct.depth_array,sprintf(depth_filename_format,i), 'Mode', 'lossless');
+end
+
+imgseq = (struct('rgb', '', 'depth', '')); % init array of structures
+for i=12:15
+    imgseq(i-11) = struct( ...
+        'rgb', sprintf(rgb_filename_format,i), ...
+        'depth', sprintf(depth_filename_format,i));
+end
+
+save('imgseq_short', 'imgseq');
+
 %% imgseq_midair_png preprocessing
 
 % dataset_path = './datasets/midair_png/';
